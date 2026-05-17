@@ -1,0 +1,23 @@
+# Go
+bin/
+*.exe
+*.test
+*.out
+coverage.out
+
+# Env
+.env
+.env.local
+
+# React / Vite
+web/node_modules/
+web/dist/
+web/.vite/
+
+# Logs
+*.log
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
