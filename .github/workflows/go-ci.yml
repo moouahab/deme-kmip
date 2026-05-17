@@ -1,4 +1,4 @@
-name: Go CI
+name: Full CI
 
 on:
   push:
@@ -26,8 +26,33 @@ jobs:
           go mod tidy
           git diff --exit-code go.mod go.sum
 
-      - name: Run tests
+      - name: Run backend tests
         run: go test ./...
 
       - name: Build backend
-        run: go build -o kmip-demo ./cmd
+        run: go build -o kmip-demo ./cmd/api
+
+  frontend:
+    name: Frontend React
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
