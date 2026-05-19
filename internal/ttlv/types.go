@@ -52,17 +52,21 @@ type Operation uint32
 const (
 	OperationCreate   Operation = 0x00000001
 	OperationGet      Operation = 0x0000000A
+	OperationLocate   Operation = 0x00000008
+	OperationActivate Operation = 0x00000012
+	OperationRevoke   Operation = 0x00000013
 	OperationDestroy  Operation = 0x00000014
-	OperationLocate   Operation = 0x0000000B
-	OperationRevoke   Operation = 0x0000000C
-	OperationActivate Operation = 0x0000000D
-	OperationCancel   Operation = 0x0000000E
-	OperationUpdate   Operation = 0x0000000F
-	OperationQuery    Operation = 0x00000010
-	OperationNotify   Operation = 0x00000011
-	OperationPoll     Operation = 0x00000012
-	OperationPong     Operation = 0x00000013
 	OperationArchive  Operation = 0x00000015
+	OperationCancel   Operation = 0x00000016
+	OperationUpdate   Operation = 0x00000017
+	OperationQuery    Operation = 0x00000018
+	OperationNotify   Operation = 0x00000019
+	OperationPoll     Operation = 0x0000001A
+	OperationPong     Operation = 0x0000001B
+
+	// OperationGetAttributes est une operation KMIP courante. La valeur est
+	// celle de KMIP pour GetAttributes dans ce prototype.
+	OperationGetAttributes Operation = 0x0000000B
 )
 
 // ObjectType représente un type d'objet KMIP.

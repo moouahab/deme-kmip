@@ -8,12 +8,12 @@ import (
 	"kmipDemo/internal/usecase/models"
 )
 
-func DestroyKey(repo kms.Repository, auditLogger audit.Logger) func(ctx context.Context, req models.OperationRequest) (models.OperationResponse, error) {
+func GetKeyAttributes(repo kms.Repository, auditLogger audit.Logger) func(ctx context.Context, req models.OperationRequest) (models.OperationResponse, error) {
 	return func(ctx context.Context, req models.OperationRequest) (models.OperationResponse, error) {
 		key, err := repo.Get(ctx, req.KeyID)
 		if err != nil {
 			_ = auditLogger.Log(ctx, audit.Event{
-				Operation: "destroy_key",
+				Operation: "get_key_attributes",
 				KeyID:     req.KeyID,
 				Result:    "not_found",
 				Error:     err.Error(),
@@ -23,7 +23,7 @@ func DestroyKey(repo kms.Repository, auditLogger audit.Logger) func(ctx context.
 
 		if key.Status == kms.KeyStatusDestroyed {
 			_ = auditLogger.Log(ctx, audit.Event{
-				Operation: "destroy_key",
+				Operation: "get_key_attributes",
 				KeyID:     req.KeyID,
 				Status:    string(key.Status),
 				Result:    "not_found",
@@ -32,29 +32,23 @@ func DestroyKey(repo kms.Repository, auditLogger audit.Logger) func(ctx context.
 			return models.OperationResponse{}, kms.ErrKeyNotFound
 		}
 
-		key.Status = kms.KeyStatusDestroyed
-
-		updated, err := repo.Update(ctx, key)
-		if err != nil {
-			_ = auditLogger.Log(ctx, audit.Event{
-				Operation: "destroy_key",
-				KeyID:     req.KeyID,
-				Result:    "error",
-				Error:     err.Error(),
-			})
-			return models.OperationResponse{}, err
-		}
-
 		_ = auditLogger.Log(ctx, audit.Event{
-			Operation: "destroy_key",
-			KeyID:     updated.ID,
-			Status:    string(updated.Status),
+			Operation: "get_key_attributes",
+			KeyID:     key.ID,
+			Status:    string(key.Status),
 			Result:    "success",
 		})
 
 		return models.OperationResponse{
-			KeyID:  updated.ID,
-			Status: string(updated.Status),
+			KeyID:  key.ID,
+			Status: string(key.Status),
+			Attributes: map[string]any{
+				"unique_identifier": key.ID,
+				"object_type":       uint32(key.ObjectType),
+				"state":             string(key.Status),
+				"created_at":        formatTime(key.CreatedAt),
+				"updated_at":        formatTime(key.UpdatedAt),
+			},
 		}, nil
 	}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
@@ -8,6 +9,7 @@ import (
 	"kmipDemo/internal/kms"
 	"kmipDemo/internal/metrics"
 	"kmipDemo/internal/transport/httpapi"
+	"kmipDemo/internal/transport/tcpapi"
 	"kmipDemo/internal/usecase"
 )
 
@@ -21,6 +23,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/kmip", httpapi.HandleKMIP(dispatcher, metricsCollector))
+	mux.HandleFunc("/keys", httpapi.HandleKeys(repo))
 	mux.HandleFunc("/metrics", httpapi.HandleMetrics(metricsCollector))
 	mux.HandleFunc("/audit", httpapi.HandleAudit(auditLogger))
 	mux.HandleFunc("/dashboard", httpapi.HandleDashboard())
@@ -34,6 +37,13 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(`{"status":"ok","service":"kmip-demo"}`))
 	})
+
+	go func() {
+		tcpServer := tcpapi.NewServer(dispatcher, metricsCollector)
+		if err := tcpServer.ListenAndServe(context.Background(), ":5696"); err != nil {
+			log.Printf("tcp transport stopped: %v", err)
+		}
+	}()
 
 	addr := ":8080"
 

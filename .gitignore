@@ -9,6 +9,9 @@ coverage.out
 .env
 .env.local
 
+# Local notes
+docs/entretien.md
+
 # React / Vite
 web/node_modules/
 web/dist/

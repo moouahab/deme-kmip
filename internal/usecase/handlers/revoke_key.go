@@ -8,12 +8,12 @@ import (
 	"kmipDemo/internal/usecase/models"
 )
 
-func DestroyKey(repo kms.Repository, auditLogger audit.Logger) func(ctx context.Context, req models.OperationRequest) (models.OperationResponse, error) {
+func RevokeKey(repo kms.Repository, auditLogger audit.Logger) func(ctx context.Context, req models.OperationRequest) (models.OperationResponse, error) {
 	return func(ctx context.Context, req models.OperationRequest) (models.OperationResponse, error) {
 		key, err := repo.Get(ctx, req.KeyID)
 		if err != nil {
 			_ = auditLogger.Log(ctx, audit.Event{
-				Operation: "destroy_key",
+				Operation: "revoke_key",
 				KeyID:     req.KeyID,
 				Result:    "not_found",
 				Error:     err.Error(),
@@ -23,7 +23,7 @@ func DestroyKey(repo kms.Repository, auditLogger audit.Logger) func(ctx context.
 
 		if key.Status == kms.KeyStatusDestroyed {
 			_ = auditLogger.Log(ctx, audit.Event{
-				Operation: "destroy_key",
+				Operation: "revoke_key",
 				KeyID:     req.KeyID,
 				Status:    string(key.Status),
 				Result:    "not_found",
@@ -32,12 +32,11 @@ func DestroyKey(repo kms.Repository, auditLogger audit.Logger) func(ctx context.
 			return models.OperationResponse{}, kms.ErrKeyNotFound
 		}
 
-		key.Status = kms.KeyStatusDestroyed
-
+		key.Status = kms.KeyStatusRevoked
 		updated, err := repo.Update(ctx, key)
 		if err != nil {
 			_ = auditLogger.Log(ctx, audit.Event{
-				Operation: "destroy_key",
+				Operation: "revoke_key",
 				KeyID:     req.KeyID,
 				Result:    "error",
 				Error:     err.Error(),
@@ -46,7 +45,7 @@ func DestroyKey(repo kms.Repository, auditLogger audit.Logger) func(ctx context.
 		}
 
 		_ = auditLogger.Log(ctx, audit.Event{
-			Operation: "destroy_key",
+			Operation: "revoke_key",
 			KeyID:     updated.ID,
 			Status:    string(updated.Status),
 			Result:    "success",

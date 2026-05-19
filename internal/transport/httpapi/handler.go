@@ -9,8 +9,9 @@ import (
 	"net/http"
 
 	"kmipDemo/internal/kms"
-	"kmipDemo/internal/ttlv"
 	"kmipDemo/internal/metrics"
+	"kmipDemo/internal/transport/kmipwire"
+	"kmipDemo/internal/ttlv"
 	"kmipDemo/internal/usecase"
 )
 
@@ -18,6 +19,8 @@ type ErrorResponse struct {
 	Error   string `json:"error"`
 	Message string `json:"message"`
 }
+
+const maxKMIPRequestBodySize = ttlv.MaxValueLength
 
 func writeJSON(w http.ResponseWriter, status int, body any) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -47,9 +50,15 @@ func HandleKMIP(dispatcher *usecase.Dispatcher, collector metrics.Collector) htt
 			writeError(w, http.StatusMethodNotAllowed, "method_not_allowed", "method not allowed")
 			return
 		}
+		r.Body = http.MaxBytesReader(w, r.Body, maxKMIPRequestBodySize)
 		data, err := io.ReadAll(r.Body)
 		if err != nil {
 			collector.IncHTTPErrors(r.Context())
+			var maxBytesError *http.MaxBytesError
+			if errors.As(err, &maxBytesError) {
+				writeError(w, http.StatusRequestEntityTooLarge, "request_too_large", "request body too large")
+				return
+			}
 			writeError(w, http.StatusBadRequest, "bad_request", "cannot read request body")
 			return
 		}
@@ -60,19 +69,19 @@ func HandleKMIP(dispatcher *usecase.Dispatcher, collector metrics.Collector) htt
 			return
 		}
 
-		req, err := blocksToOperationRequest(blocks)
+		req, err := kmipwire.BlocksToOperationRequest(blocks)
 		if err != nil {
 			collector.IncHTTPErrors(r.Context())
 			writeError(w, http.StatusBadRequest, "bad_request", err.Error())
 			return
 		}
 		switch req.Operation {
-			case ttlv.OperationCreate:
-				collector.IncCreateKey(r.Context())
-			case ttlv.OperationGet:
-				collector.IncGetKey(r.Context())
-			case ttlv.OperationDestroy:
-				collector.IncDestroyKey(r.Context())
+		case ttlv.OperationCreate:
+			collector.IncCreateKey(r.Context())
+		case ttlv.OperationGet:
+			collector.IncGetKey(r.Context())
+		case ttlv.OperationDestroy:
+			collector.IncDestroyKey(r.Context())
 		}
 		resp, err := dispatcher.Dispatch(r.Context(), req)
 		if err != nil {

@@ -6,7 +6,11 @@ export const TypeEnumeration = 0x05;
 export const TypeTextString = 0x07;
 
 export const OperationCreate = 0x00000001;
+export const OperationLocate = 0x00000008;
 export const OperationGet = 0x0000000a;
+export const OperationGetAttributes = 0x0000000b;
+export const OperationActivate = 0x00000012;
+export const OperationRevoke = 0x00000013;
 export const OperationDestroy = 0x00000014;
 
 export const ObjectTypeSymmetricKey = 0x00000002;
@@ -61,6 +65,39 @@ export function buildGetKeyRequest(keyId: string): Uint8Array {
 export function buildDestroyKeyRequest(keyId: string): Uint8Array {
   const bytes = [
     ...encodeEnumeration(TagOperation, OperationDestroy),
+    ...encodeTextString(TagUniqueIdentifier, keyId),
+  ];
+
+  return new Uint8Array(bytes);
+}
+
+export function buildActivateKeyRequest(keyId: string): Uint8Array {
+  const bytes = [
+    ...encodeEnumeration(TagOperation, OperationActivate),
+    ...encodeTextString(TagUniqueIdentifier, keyId),
+  ];
+
+  return new Uint8Array(bytes);
+}
+
+export function buildRevokeKeyRequest(keyId: string): Uint8Array {
+  const bytes = [
+    ...encodeEnumeration(TagOperation, OperationRevoke),
+    ...encodeTextString(TagUniqueIdentifier, keyId),
+  ];
+
+  return new Uint8Array(bytes);
+}
+
+export function buildLocateKeysRequest(): Uint8Array {
+  const bytes = [...encodeEnumeration(TagOperation, OperationLocate)];
+
+  return new Uint8Array(bytes);
+}
+
+export function buildGetAttributesRequest(keyId: string): Uint8Array {
+  const bytes = [
+    ...encodeEnumeration(TagOperation, OperationGetAttributes),
     ...encodeTextString(TagUniqueIdentifier, keyId),
   ];
 

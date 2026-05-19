@@ -24,6 +24,7 @@ export function AuditPage() {
   const success = events.filter((event) => event.result === "success").length;
   const notFound = events.filter((event) => event.result === "not_found").length;
   const errors = events.filter((event) => event.result === "error").length;
+  const recentEvents = [...events].reverse();
 
   return (
     <>
@@ -70,7 +71,7 @@ export function AuditPage() {
                   <td colSpan={6}>No audit events available.</td>
                 </tr>
               ) : (
-                events.map((event, index) => (
+                recentEvents.map((event, index) => (
                   <tr key={index}>
                     <td>{new Date(event.time).toLocaleTimeString()}</td>
                     <td>

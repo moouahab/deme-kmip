@@ -1,4 +1,4 @@
-package httpapi
+package kmipwire
 
 import (
 	"encoding/binary"
@@ -8,7 +8,7 @@ import (
 	"kmipDemo/internal/usecase/models"
 )
 
-func blocksToOperationRequest(blocks []ttlv.Block) (models.OperationRequest, error) {
+func BlocksToOperationRequest(blocks []ttlv.Block) (models.OperationRequest, error) {
 	var req models.OperationRequest
 
 	for _, block := range blocks {
@@ -41,8 +41,20 @@ func blocksToOperationRequest(blocks []ttlv.Block) (models.OperationRequest, err
 			req.Payload = block.Value
 		}
 	}
+
 	if !req.Operation.IsValid() {
 		return models.OperationRequest{}, fmt.Errorf("invalid or missing operation")
 	}
+	switch req.Operation {
+	case ttlv.OperationCreate:
+		if !req.ObjectType.IsValid() {
+			return models.OperationRequest{}, fmt.Errorf("invalid or missing object type")
+		}
+	case ttlv.OperationGet, ttlv.OperationDestroy, ttlv.OperationActivate, ttlv.OperationRevoke, ttlv.OperationGetAttributes:
+		if req.KeyID == "" {
+			return models.OperationRequest{}, fmt.Errorf("missing key id")
+		}
+	}
+
 	return req, nil
 }
