@@ -8,7 +8,11 @@ const items = [
   { to: "/audit", label: "Audit Logs", icon: "▤" },
 ];
 
-export function Sidebar() {
+type SidebarProps = {
+  onNavigate?: () => void;
+};
+
+export function Sidebar({ onNavigate }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="brand">
@@ -22,6 +26,7 @@ export function Sidebar() {
             key={item.to}
             to={item.to}
             className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+            onClick={onNavigate}
           >
             <span>{item.icon}</span>
             {item.label}

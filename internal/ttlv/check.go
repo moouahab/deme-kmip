@@ -95,7 +95,7 @@ func (b Block) Validate() error {
 	if b.Length > MaxValueLength {
 		return fmt.Errorf("ttlv: value too large: %d bytes", b.Length)
 	}
-	if uint32(len(b.Value)) != b.Length {
+	if len(b.Value) != int(b.Length) {
 		return fmt.Errorf("ttlv: invalid length: expected %d bytes, got %d bytes", b.Length, len(b.Value))
 	}
 	return nil

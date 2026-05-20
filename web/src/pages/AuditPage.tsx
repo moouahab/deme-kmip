@@ -26,6 +26,31 @@ export function AuditPage() {
   const errors = events.filter((event) => event.result === "error").length;
   const recentEvents = [...events].reverse();
 
+  function exportAuditJSON() {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const filename = `audit-events-${timestamp}.json`;
+    const content = JSON.stringify(
+      {
+        exported_at: new Date().toISOString(),
+        total: events.length,
+        events,
+      },
+      null,
+      2,
+    );
+
+    const blob = new Blob([content], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <>
       <section className="page-header with-actions">
@@ -36,7 +61,9 @@ export function AuditPage() {
 
         <div className="button-row clean">
           <button onClick={loadAudit}>↻ Refresh</button>
-          <button className="primary">↓ Export JSON</button>
+          <button className="primary" onClick={exportAuditJSON}>
+            ↓ Export JSON
+          </button>
         </div>
       </section>
 

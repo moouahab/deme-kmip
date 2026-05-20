@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"time"
 
 	"kmipDemo/internal/audit"
 	"kmipDemo/internal/kms"
@@ -46,9 +47,18 @@ func main() {
 	}()
 
 	addr := ":8080"
+	httpServer := &http.Server{
+		Addr:              addr,
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
 
 	log.Printf("starting kmip demo api on %s", addr)
-	if err := http.ListenAndServe(addr, mux); err != nil {
+	
+	if err := httpServer.ListenAndServe(); err != nil {
 		log.Fatalf("server failed: %v", err)
 	}
 }
